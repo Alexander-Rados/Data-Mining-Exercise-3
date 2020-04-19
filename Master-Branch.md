@@ -257,7 +257,7 @@ fall in.
 
 # Market Segmentation
 
-\#\#Background Defined market segments are fundamental for guiding a
+**Background:** Defined market segments are fundamental for guiding a
 marketing strategy and as such, we valued clarity, ease of
 communication, and relevance throughout this project. Market
 segmentation, in our view, is not just a categorization scheme, but a
@@ -290,7 +290,7 @@ dataset.
 
 ## Market Segments (K-Means++)
 
-\#\#\#Choosing K Our first task was to choose a reasonable number of
+**Choosing K:** Our first task was to choose a reasonable number of
 clusters. In pursuit of an optimal number, we employed an elbow plot,
 the CH-Index, and the gap statistic, all to no avail, so we decided to
 just pick one. After some test runs, we settled on 6 clusters that were
@@ -443,11 +443,7 @@ particular:
 While we don’t have information on how many posts each user posted over
 the sample week, we can use the number of labels associated with them as
 a proxy, assuming the number of labels per individual post is fairly
-invariant across users. Here is the distribution of
-    labels:
-
-    ## Warning: Use of `social_marketing$total` is discouraged. Use `total`
-    ## instead.
+invariant across users. Here is the distribution of labels:
 
 ![](Master-Branch_files/figure-gfm/unnamed-chunk-30-1.png)<!-- -->
 

@@ -341,7 +341,7 @@ In summary of analysis, both K means clustering and PCA were able to show us sep
 
 # Market Segmentation
 
-##Background
+**Background:**
 Defined market segments are fundamental for guiding a marketing strategy and as such, we valued clarity, ease of communication, and relevance throughout this project.  Market segmentation, in our view, is not just a categorization scheme, but a basis for action.
 
 While we tried agglomerative hierarchical clustering (since we suspected that tags like “chatter” might be an umbrella with several distinct/relevant sub-characteristics) and principal components analysis (PCA), in order to distill any correlations, we thought that K-means++ conveyed the clearest insights.  By use of K-means++, we are able to discern and characterize 6 distinct market segments that may help inform the marketing strategy of NutrientH20.
@@ -420,7 +420,7 @@ t6 <- head(sum1[(order(sum1[,11], decreasing = TRUE)), 11:12, drop = FALSE], n=8
 
 ## Market Segments (K-Means++)
 
-###Choosing K
+**Choosing K:**
 Our first task was to choose a reasonable number of clusters.  In pursuit of an optimal number, we employed an elbow plot, the CH-Index, and the gap statistic, all to no avail, so we decided to just pick one.  After some test runs, we settled on 6 clusters that were most identifiable.
 
 Each cluster is listed below, ordered by size from smallest to largest, with their eight most common labels and a short description (it should be noted that "chatter" and "photo-sharing" are in each cluster's top 8):
@@ -496,7 +496,7 @@ While we don’t have information on how many posts each user posted over the sa
 
 ```{r include=FALSE, cache=TRUE}
 labelhist <- ggplot(data = social_marketing) +
-  geom_bar(mapping = aes(social_marketing$total)) +
+  geom_bar(mapping = aes(total)) +
   ggtitle("Label Count") +
   labs(x = "Number of Labels", y = "Number of Users") +
   theme(plot.title = element_text(hjust = 0.5, size = 22))
