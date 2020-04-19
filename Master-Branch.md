@@ -44,8 +44,8 @@ legitimate results while not needing the specifics that boosting
 requires. I initially began by setting a random forest model to
 variables that I assumed would have a significant effect on rent price.
 
-I then began to whittle down the components of the model, getting rid of
-or adjusting the variables that had the smallest effects on the SSE when
+I began to whittle down the components of the model, getting rid of or
+adjusting the variables that had the smallest effects on the SSE when
 being included depending on the variable imporance plot.
 ![](Master-Branch_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
@@ -163,3 +163,96 @@ evidence that maybe an increase in police in District 1 provides a
 decrease in street crime while for every other district we can’t reject
 the null that the crime rate does not change with a change in amount of
 police.
+
+# Clustering and PCA
+
+This problem required us first to pick an appropriate clustering method
+and run both that method and PCA. From this we had to choose the optimal
+method in identifying colors red and white. Logically, I used K Means
+clustering to separate these wines. This data set had a handful of
+variables that were used to measure each sample and it mapped to quality
+and color. The goal of K clustering is to average over these variables
+so that the average of each samples’ characteristics would link to the
+nearest similar cluster.
+
+In my analysis, I had to figure out what K to use. I created an elbow
+plot, a graph of the mean sum of squares where the optimal K would be
+its tangent point. I found the ideal K would be 3 for this analysis.
+
+![](Master-Branch_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+After finding the optimal K, I used it to run K Means and create 3
+clusters. To run this analysis I made colors binary, red=1 and white=0.
+I linked the appropriate clusters to red or white. If the value of the
+color column was greater than .5 then the cluster would be classified as
+a red wine, and if not, it would be classified as a white. From this we
+had our predictions of red and white wines, as shown in the following
+graphs.
+
+![](Master-Branch_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->![](Master-Branch_files/figure-gfm/unnamed-chunk-8-2.png)<!-- -->![](Master-Branch_files/figure-gfm/unnamed-chunk-8-3.png)<!-- -->
+
+From these three graphs we see that there is grouping of reds and
+whites. The red wines have higher levels of sulfur and a smaller range
+of sulfate levels. The second graph shows us that citric acids are
+relatively spread the same but red wines have hiring chloride counts
+than white. Our third graph shows us that red wines are not as sweet as
+white wine and tend to have a higher spread of acidity.
+
+We also see an important factor to consider is that there is overlap of
+red and white wines at times. This is due to the fact that the
+clustering is not perfect and we thus face some level of error as wines
+are similar in the chemical breakdown Now we should compare to the PCA
+analysis to separate reds and whites. I scaled the data set and sorted
+the data and ran PCA. The summary showed that the first two components
+explained most of the variation of the data. From this, the data was
+plotted and mapped to show reds and whites. We see that the difference
+is more distinct when separating the two groups. We see that PCA does a
+better job of decipering between red and white wines with less overlap
+of the data, making it a better technique.
+
+![](Master-Branch_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+## Wine Quality Ranking
+
+Part two of this assignment was to find a way to rank the quality of
+wines. I went with a PCA because it was more accurate on this data set
+and it works better when there are higher levels of correlation like in
+our wine set.
+
+I ran a similar method to the PCA earlier for the wine quality problem.
+The goal was to split the quality of wines into seven individual groups.
+From our graph we see there is some slight differences between the
+groups. The left chunk is slightly lighter than the right chunk. This
+shows there is some light separation of quality. However as a whole we
+can’t find definite segments of quality.
+
+The reason that this could be that there is a high level of correlation
+between all the variables regardless of quality. By this I mean there is
+less differentiation of wine quality from the chemical make up.
+
+![](Master-Branch_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+
+After our failed PCA for quality I tried out K means approach to see if
+there was an alternative approach. I ran a parallel method as the wine
+color clustering method to cluster for quality. I ran into a similar
+issue where I could not separate for each of the qualities . In the
+density graphs we see that the majority of the wines grouped around 5
+and 6. This supports that the individual wine qualities were not
+identified. We also see that the majority of the clusters were showing
+clusters that averaged around 5 or 6. This supports the idea that the
+variables were too highly correlated to help us segment quality as the
+clusters were just similar to average quality of the data
+set.
+
+![](Master-Branch_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->![](Master-Branch_files/figure-gfm/unnamed-chunk-14-2.png)<!-- -->![](Master-Branch_files/figure-gfm/unnamed-chunk-14-3.png)<!-- -->![](Master-Branch_files/figure-gfm/unnamed-chunk-14-4.png)<!-- -->
+
+## Conclusion
+
+In summary of analysis, both K means clustering and PCA were able to
+show us separate segments of red and white. When running a similar
+process for wine quality we found that it was not possible to separate
+each wine on the quality rating. The assumption is that the wines are
+all very similar in their breakdown regardless of the quality group they
+fall in.
+
+# Market Segmentation

@@ -119,3 +119,224 @@ They questioned whether it was possible that tourists were less likely to be out
 The model being estimated is a regression of crime rates in Washington D.C. on high alert (whether there was a terror alert level of orange which provides an unusual increase in the amount of police present) interacted with the first district of Washington D.C. and high alert interacted with all the other districts while still controlling for Metro ridership. 
 
 We are seeing that there is a difference in the high alert police level effects on crime rates between District 1 and every other district. When there is an unusual influx of police to District 1 because of a high terror level, it decreases crime rates more drastically than when there is an increase in police in every other district (for District 1 it would be a significant decrease at the 1% level while for the other districts it wouldn’t be significant at all). This provides some evidence that maybe an increase in police in District 1 provides a decrease in street crime while for every other district we can’t reject the null that the crime rate does not change with a change in amount of police. 
+
+# Clustering and PCA
+```{R include=FALSE, cache=TRUE}
+library(ggplot2)
+library(foreach)
+library(mosaic)
+library(dplyr)
+wine = read.csv("~/Documents/Data Mining/data/wine.csv")
+wine <- mutate(wine, id = rownames(wine))
+wine1= wine
+wine$color <- ifelse(wine$color == "red", 1, 0)
+Winecolor=select(wine,-c(12))
+WineQ=select(wine,-c(13))
+# Center and scale the data
+X = Winecolor[,(1:11)]
+X = scale(X, center=TRUE, scale=TRUE)
+# Extract the centers and scales from the rescaled data (which are named attributes)
+mu = attr(X,"scaled:center")
+sigma = attr(X,"scaled:scale")
+#pick K
+wss <- (nrow(Winecolor)-1)*sum(apply(Winecolor,2,var))
+#finding within sum of squares
+for (i in 2:15) wss[i] <- sum(kmeans(Winecolor,centers=i)$withinss)
+plot(1:15, wss, type="b", xlab="Number of Clusters",
+     ylab="Within groups sum of squares",col="mediumseagreen",pch=12)
+# Run k-means with 3 clusters and 25 starts
+clust1 = kmeans(X, 3, nstart=1000)
+# What are the clusters?
+clust1$center  # not super helpful
+clust1$center[1,]*sigma + mu
+clust1$center[2,]*sigma + mu
+clust1$centers[3,]*sigma + mu
+# Which wines are in which clusters?
+one= which(clust1$cluster == 1)
+two=which(clust1$cluster == 2)
+three=which(clust1$cluster == 3)
+###### link variables to wine set
+first <- Winecolor[c(one), ]
+second = Winecolor[c(two),]
+third = Winecolor[c(three),]
+## id the clusters
+first= mutate(first, id =rownames(first))
+second= mutate(second, id =rownames(second))
+third= mutate(third, id =rownames(third))
+#### map to white or red 
+first$color= mean(first$color)
+first$color <- ifelse(first$color >= .5, "red", "white")
+second$color= mean(second$color)
+second$color <- ifelse(second$color >= .5, "red", "white")
+third$color= mean(third$color)
+third$color <- ifelse(third$color >= .5, "red", "white")
+### predicted list of colors
+predict1= rbind(first,second,third)
+predict1[order(predict1$id),]
+predict2=predict1
+predict= predict1
+### split and list by ID
+red <- subset(predict1, color =="red")
+white = subset(predict2, color =="white")
+### graphically show 
+```
+
+This problem required us first to pick an appropriate clustering method and run both that method and PCA. From this we had to choose the optimal method in identifying colors red and white. Logically, I used K Means clustering to separate these wines. This data set had a handful of variables that were used to measure each sample and it mapped to quality and color. The goal of K clustering is to average over these variables so that the average of each samples' characteristics would link to the nearest similar cluster. 
+
+In my analysis, I had to figure out what K to use. I created an elbow plot, a graph of the mean sum of squares where the optimal K would be its tangent point. I found the ideal K would be 3 for this analysis.
+
+```{R echo=FALSE, cache=TRUE, fig.width=5, fig.height=5}
+plot(1:15, wss, type="b", xlab="Number of Clusters",
+     ylab="Within groups sum of squares",col="mediumseagreen",main="K plot",pch=12)
+```
+
+After finding the optimal K, I used it to run K Means and create 3 clusters. To run this analysis I made colors binary, red=1 and white=0. I linked the appropriate clusters to red or white. If the value of the color column was greater than .5 then the cluster would be classified as a red wine, and if not, it would be classified as a white. From this we had our predictions of red and white wines, as shown in the following graphs.
+
+```{R echo=FALSE, cache=TRUE}
+print(
+  (ggplot(predict, aes(x = sulphates, y = total.sulfur.dioxide, colour = color)) + geom_point() + labs(title="Sulfar vs Sulfates")))
+ print( ggplot(predict, aes(x = citric.acid, y = chlorides, colour = color)) + geom_point() + labs(title="Citric Acid vs Chlorides"))
+  
+ print (ggplot(predict, aes(x = fixed.acidity, y = residual.sugar, colour = color)) + geom_point() + labs(title= "Acidity vs Sugar"))
+```
+
+From these three graphs we see that there is grouping of reds and whites. The red wines have higher levels of sulfur and a smaller range of sulfate levels. The second graph shows us that citric acids are relatively spread the same but red wines have hiring chloride counts than white. Our third graph shows us that red wines are not as sweet as white wine and tend to have a higher spread of acidity. 
+
+We also see an important factor to consider is that there is overlap of red and white wines at times. This is due to the fact that the clustering is not perfect and we thus face some level of error as wines are similar in the chemical breakdown 
+Now we should compare to the PCA analysis to separate reds and whites. I scaled the data set and sorted the data and ran PCA. The summary showed that the first two components explained most of the variation of the data. From this, the data was plotted and mapped to show reds and whites. We see that the difference is more distinct when separating the two groups. We see that PCA does a better job of decipering between red and white wines with less overlap of the data, making it a better technique.
+
+```{R include=FALSE, cache=TRUE}
+#PCA
+library("cluster")
+rm(wine1)
+wine1=wine
+wine1 = group_by(wine1,quality)
+colorlist= wine1$color
+wine1= select(wine1,-(14))
+wine1= select(wine1,-13)
+wine1= scale(wine1)
+pc= prcomp(wine1, scores=TRUE, cor= TRUE)
+summary(pc)
+plot(pc)
+plot(pc,type = "l", main ="Scree plot for PCA")
+biplot(pc)
+#For PC 1
+PC_1 <- pc$rotation[,1]
+PC_1 <- abs(PC_1)
+PC_1<- names(sort(PC_1,decreasing = T))
+#For PC 2
+PC_2 <- pc$rotation[,2]
+PC_2 <- abs(PC_2)
+PC_2<- names(sort(PC_2,decreasing = T))
+pc$rotation[PC_1,1]
+pc$rotation[PC_2,2]
+pca.color <- data.frame(wine1, pc$x[,1:2])
+pca.color = cbind(pca.color,colorlist)
+pca.color$colorlist <- ifelse(pca.color$colorlist == 1, "red", "white")
+```
+
+```{R echo=FALSE,fig.width=5, fig.height=5}
+print(ggplot(pca.color,aes(x=PC1,y=PC2,colour= colorlist)) + geom_point() + labs(title="Red vs White")
+)
+```
+
+## Wine Quality Ranking
+Part two of this assignment was to find a way to rank the quality of wines. I went with a PCA because it was more accurate on this data set and it works better when there are higher levels of correlation like in our wine set. 
+
+I ran a similar method to the PCA earlier for the wine quality problem. The goal was to split the quality of wines into seven individual groups. From our graph we see there is some slight differences between the groups. The left chunk is slightly lighter than the right chunk. This shows there is some light separation of quality. However as a whole we can't find definite segments of quality.
+
+The reason that this could be that there is a high level of correlation between all the variables regardless of quality. By this I mean there is less differentiation of wine quality from the chemical make up. 
+
+```{R include=FALSE, cache=TRUE}
+rm(wine2)
+wine2=wine
+wine2 = group_by(wine2,color)
+qualitylist= wine2$quality
+wine2= select(wine2,-(14))
+wine2= select(wine2,-12)
+wine2= scale(wine2)
+pca= prcomp(wine2, scores=TRUE, cor= TRUE)
+summary(pca)
+plot(pca)
+plot(pca,type = "l", main ="Scree plot for PCA")
+biplot(pca)
+#For PC 1
+PCA1 <- pca$rotation[,1]
+PCA1 <- abs(PCA1)
+PCA1<- names(sort(PCA1,decreasing = T))
+#For PC 2
+PCA2 <- pca$rotation[,2]
+PCA2 <- abs(PCA2)
+PCA2<- names(sort(PCA2,decreasing = T))
+pca$rotation[PCA1,1]
+pca$rotation[PCA2,2]
+pcaQ <- data.frame(wine2, pca$x[,1:2])
+pcaKMeans = pcaQ 
+pcaQ = cbind(pcaQ,qualitylist)
+```
+
+```{R echo=FALSE,fig.width=5, fig.height=5, cache=TRUE}
+print(ggplot(pcaQ,aes(x=PC1,y=PC2, colour= qualitylist)) + geom_point() + labs(title="Quality Spread")
+)
+```
+
+After our failed PCA for quality I tried out K means approach to see if there was an alternative approach. I ran a parallel method as the wine color clustering method to cluster for quality. I ran into a similar issue where I could not separate for each of the qualities . In the density graphs we see that the majority of the wines grouped around 5 and 6. This supports that the individual wine qualities were not identified. We also see that the majority of the clusters were showing clusters that averaged around 5 or 6. This supports the idea that the variables were too highly correlated to help us segment quality as the clusters were just similar to average quality of the data set.
+
+```{R include=FALSE, cache=TRUE}
+#### RUN SIMILAR PROCESS FOR QUALITY
+  
+  
+  ####
+# Center and scale the data
+Y = WineQ[,(1:11)]
+Y = scale(Y, center=TRUE, scale=TRUE)
+# Extract the centers and scales from the rescaled data (which are named attributes)
+m = attr(Y,"scaled:center")
+s = attr(Y,"scaled:scale")
+#pick K
+wss <- (nrow(WineQ)-1)*sum(apply(WineQ,2,var))
+#finding within sum of squares
+for (i in 2:15) wss[i] <- sum(kmeans(WineQ,centers=i)$withinss)
+plot(1:15, wss, type="b", xlab="Number of Clusters",
+     ylab="Within groups sum of squares",col="mediumseagreen",pch=12)
+# Run k-means with 4 clusters and 25 starts
+# Run k-means with 4clusters and 1000 starts
+clust2 = kmeans(Y, 4, nstart=1000)
+# What are the clusters?
+clust2$center  # not super helpful
+clust2$center[1,]*sigma + mu
+clust2$center[2,]*sigma + mu
+clust2$centers[3,]*sigma + mu
+clust2$center[4,]*sigma + mu
+# Which wines are in which clusters?
+on= which(clust2$cluster == 1)
+tw=which(clust2$cluster == 2)
+th=which(clust2$cluster == 3)
+f=which(clust2$cluster == 4)
+###### link variables to wine set
+fi <- WineQ[c(on), ]
+s = WineQ[c(tw),]
+t = WineQ[c(th),]
+fo  = WineQ[c(f),]
+## id the clusters
+fi= mutate(fi, id =rownames(fi))
+s= mutate(s, id =rownames(s))
+t= mutate(t, id =rownames(t))
+fo= mutate(fo, id =rownames(fo))
+```
+```{R echo=FALSE, cache=TRUE,fig.width=3.5, fig.height=4}
+### density
+print(ggplot(fi, aes(x=quality)) + 
+  geom_density()+ labs(title="Cluster 1"))
+print(ggplot(s, aes(x=quality)) + 
+  geom_density() + labs(title="Cluster 2"))
+print(ggplot(t, aes(x=quality)) + 
+  geom_density() + labs(title="Cluster 3"))
+print(ggplot(fo, aes(x=quality)) + 
+  geom_density() + labs(title="Cluster 4"))
+````
+
+## Conclusion
+In summary of analysis, both K means clustering and PCA were able to show us separate segments of red and white. When running a similar process for wine quality we found that it was not possible to separate each wine on the quality rating. The assumption is that the wines are all very similar in their breakdown regardless of the quality group they fall in.
+
+# Market Segmentation
